@@ -70,4 +70,15 @@ extern ID_EX_reg ID_EX_current, ID_EX_next;
 extern EX_MEM_reg EX_MEM_current, EX_MEM_next;
 extern MEM_WB_reg MEM_WB_current, MEM_WB_next;
 
+typedef struct Control_Unit {
+    uint8_t RegWriteD;
+    uint8_t ResultSrc;
+    uint8_t MemWrite;
+    uint8_t Jump;
+    uint8_t Branch;
+    uint8_t ALUControl;
+    uint8_t ALUSrc;
+    uint8_t ImmSrc;
+};
+
 #endif

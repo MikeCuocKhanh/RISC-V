@@ -1,7 +1,11 @@
 #include "Pipelined_regs.h"
 #include <stdint.h>
 
-uint32_t ImmExtend (uint8_t ImmSrc) {
+void controlUnit (uint8_t opcode, uint8_t funct3, uint8_t funct7_5th) {
+    
+}
+
+uint32_t immExtend (uint8_t ImmSrc) {
     uint32_t ImmExt = 0x00;   
     switch (ImmSrc) {
         case 0x00:
@@ -66,7 +70,7 @@ void execute_ID () {
     uint8_t funct3 = (IF_ID_current.Instr >> 12) & 0X07;
     uint8_t rs1 = (IF_ID_current.Instr >> 15) & 0x1F;
     uint8_t rs2 = (IF_ID_current.Instr >> 20) & 0x1F;
-    uint8_t funct7 = (IF_ID_current.Instr >> 25) &0x7F;
+    uint8_t funct7_5th = (IF_ID_current.Instr >> 30) &0x01;    //(Instr >> 25) & 0x7F for funct7        //for subset instructions only use the 5th bit
 
     
 }
