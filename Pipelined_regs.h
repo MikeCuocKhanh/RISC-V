@@ -60,6 +60,7 @@ typedef struct {
 // will add variables and functions later as development go on
 extern uint32_t PC;
 extern uint32_t PCNext;
+extern uint32_t PCTarget;
 
 extern uint32_t RegFile[32];
 extern uint32_t InstrMem[MAX];
@@ -70,8 +71,8 @@ extern ID_EX_reg ID_EX_current, ID_EX_next;
 extern EX_MEM_reg EX_MEM_current, EX_MEM_next;
 extern MEM_WB_reg MEM_WB_current, MEM_WB_next;
 
-typedef struct Control_Unit {
-    uint8_t RegWriteD;
+typedef struct {
+    uint8_t RegWrite;
     uint8_t ResultSrc;
     uint8_t MemWrite;
     uint8_t Jump;
@@ -79,6 +80,10 @@ typedef struct Control_Unit {
     uint8_t ALUControl;
     uint8_t ALUSrc;
     uint8_t ImmSrc;
-};
+} Control_Unit;
+
+extern Control_Unit controlSignals;
+extern uint8_t Zero;
+extern uint8_t PCSrc;
 
 #endif
