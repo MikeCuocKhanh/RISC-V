@@ -7,6 +7,7 @@
 uint32_t PC;
 uint32_t PCNext;
 uint32_t PCTarget;
+uint32_t Result;
 
 uint32_t RegFile[32];
 uint32_t InstrMem[MAX];
@@ -18,6 +19,9 @@ EX_MEM_reg EX_MEM_current, EX_MEM_next;
 MEM_WB_reg MEM_WB_current, MEM_WB_next;
 
 Control_Unit controlSignals;
+Forwarding_Unit forwardingSignals;
+Hazard_Unit hazarControlSignals;
+
 uint8_t Zero;
 uint8_t PCSrc;
 
@@ -49,6 +53,8 @@ void initCPU () {
     MEM_WB_next = (MEM_WB_reg) {0};
 
     controlSignals = (Control_Unit) {0};
+    forwardingSignals = (Forwarding_Unit) {0};
+
     Zero = 0x00;
     PCSrc = 0x00;
 }
@@ -66,8 +72,17 @@ int main() {
     
     while (1) {
         cycle++;
-        
         //calling executions
+        execute_WB ();
+        
+        //calling forwarding control
+        forwardingSignals.forwardAE = forwardExecute (ID_EX_current.Rs1);
+        forwardingSignals.forwardBE = forwardExecute (ID_EX_current.Rs2);
+
+        execute_EX (forwardingSignals.forwardAE, forwardingSignals.forwardBE, Result);
+        execute_IF ();
+        execute_ID (MEM_WB_current.Rd, MEM_WB_current.RegWrite, Result);
+        execute_MEM ();
         //calling hazard control
         
         updateState();

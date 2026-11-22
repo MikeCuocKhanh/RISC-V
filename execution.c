@@ -1,7 +1,7 @@
-#include "Pipelined_regs.h"
 #include <stdint.h>
+#include "Pipelined_regs.h"
 
-uint32_t ALU (uint8_t ALUControl, uint32_t SrcA, uint32_t SrcB) {
+static uint32_t ALU (uint8_t ALUControl, uint32_t SrcA, uint32_t SrcB) {
     uint32_t ALUResult = 0x00;
     switch(ALUControl) {
         //add
@@ -35,7 +35,7 @@ uint32_t ALU (uint8_t ALUControl, uint32_t SrcA, uint32_t SrcB) {
     return ALUResult;
 }
 
-void controlUnit (uint8_t opcode, uint8_t funct3, uint8_t funct7_5th) {
+static void controlUnit (uint8_t opcode, uint8_t funct3, uint8_t funct7_5th) {
     controlSignals = (Control_Unit) {0};
     uint8_t ALUOp = 0x00;
     switch (opcode) {
@@ -121,7 +121,7 @@ void controlUnit (uint8_t opcode, uint8_t funct3, uint8_t funct7_5th) {
     return;
 }
 
-uint32_t immExtend (uint8_t ImmSrc) {
+static uint32_t immExtend (uint8_t ImmSrc) {
     uint32_t ImmExt = 0x00;   
     switch (ImmSrc) {
         case 0x00:
@@ -219,7 +219,7 @@ void execute_ID (uint8_t Rd, uint8_t RegWrite, uint32_t Result) {
     return;
 }
 
-void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result, uint32_t ALUResult) {
+void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result) {
     Zero = 0x00;
     EX_MEM_next.RegWrite = ID_EX_current.RegWrite;
     EX_MEM_next.ResultSrc = ID_EX_current.ResultSrc;
@@ -227,7 +227,7 @@ void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result, uint32_t
 
     uint32_t SrcA = 0x00;
     uint32_t SrcB = 0x00;
-    uint32_t WriteData = 0x00;  //check later! 0x00 is x0 (non-write). Dont judge this just to remind myself
+    uint32_t WriteData = 0x00;  //check later! 0x00 is x0 (non-write). Just to remind myself.
 
     switch (forwardAE) {
         case 0x00:
@@ -237,7 +237,7 @@ void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result, uint32_t
             SrcA = Result;
             break;
         case 0x02:
-            SrcA = ALUResult;
+            SrcA = EX_MEM_current.ALUResult;
             break;
         default: break;
     }
@@ -249,7 +249,7 @@ void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result, uint32_t
             WriteData = Result;
             break;
         case 0x02:
-            WriteData = ALUResult;
+            WriteData = EX_MEM_current.ALUResult;
             break;
         default: break;
     }
@@ -277,6 +277,35 @@ void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result, uint32_t
     return;
 }
 
-void execute_MEM () {}
+void execute_MEM () {
+    MEM_WB_next.RegWrite = EX_MEM_current.RegWrite;
+    MEM_WB_next.ResultSrc = EX_MEM_current.ResultSrc;
 
-void execute_WB () {}
+    MEM_WB_next.ALUResult = EX_MEM_current.ALUResult;
+    
+    uint32_t index = EX_MEM_current.ALUResult / 4;
+    if (EX_MEM_current.MemWrite) {
+        if (index < MAX) DataMem[index] = EX_MEM_current.WriteData;
+    }
+
+    if (index < MAX) MEM_WB_next.RD = DataMem[index];
+    else MEM_WB_next.RD = 0x00;
+    
+    MEM_WB_next.Rd = EX_MEM_current.Rd;
+    MEM_WB_next.PCPlus4 = EX_MEM_current.PCPlus4;
+}
+
+void execute_WB () {
+    switch (MEM_WB_current.ResultSrc) {
+        case 0x00:
+            Result = MEM_WB_current.ALUResult;
+            break;
+        case 0x01:
+            Result = MEM_WB_current.RD;
+            break;
+        case 0x02:
+            Result = MEM_WB_current.PCPlus4;
+            break;
+        default: break;
+    }
+}

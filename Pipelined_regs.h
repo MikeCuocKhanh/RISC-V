@@ -61,6 +61,7 @@ typedef struct {
 extern uint32_t PC;
 extern uint32_t PCNext;
 extern uint32_t PCTarget;
+extern uint32_t Result;
 
 extern uint32_t RegFile[32];
 extern uint32_t InstrMem[MAX];
@@ -82,8 +83,30 @@ typedef struct {
     uint8_t ImmSrc;
 } Control_Unit;
 
+typedef struct {
+    uint8_t forwardAE;
+    uint8_t forwardBE;
+} Forwarding_Unit;
+
+typedef struct {
+    uint8_t StallF;
+    uint8_t StallD;
+    uint8_t FlushD;
+    uint8_t FlushE;
+} Hazard_Unit;
+
 extern Control_Unit controlSignals;
+extern Forwarding_Unit forwardingSignals;
+extern Hazard_Unit hazarControlSignals;
+
 extern uint8_t Zero;
 extern uint8_t PCSrc;
 
+void execute_IF (void);
+void execute_ID (uint8_t Rd, uint8_t RegWrite, uint32_t Result);
+void execute_EX (uint8_t forwardAE, uint8_t forwardBE, uint32_t Result);
+void execute_MEM (void);
+void execute_WB (void);
+
+uint8_t forwardExecute (uint8_t Rs);
 #endif
